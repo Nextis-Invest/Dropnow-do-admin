@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { RIDE_STATUSES, MISSION_RIDE_CATEGORIES, MILESTONE_TYPES } from "../constants";
+import {
+  RIDE_STATUSES,
+  MISSION_RIDE_CATEGORIES,
+  MILESTONE_TYPES,
+} from "../constants";
 
 export const milestoneSchema = z.object({
   address: z.string().min(1, "Address is required"),
@@ -13,6 +17,11 @@ export const simpleRideSchema = z.object({
   pickupAddress: z.string().min(1, "Pickup address is required"),
   dropoffAddress: z.string().min(1, "Dropoff address is required"),
   pickupTime: z.date({ required_error: "Pickup time is required" }),
+  // Coordinates
+  pickupLatitude: z.number().optional(),
+  pickupLongitude: z.number().optional(),
+  dropoffLatitude: z.number().optional(),
+  dropoffLongitude: z.number().optional(),
   category: z.enum(MISSION_RIDE_CATEGORIES),
   status: z.enum(RIDE_STATUSES).optional().default("SCHEDULED"),
   notes: z.string().optional(),

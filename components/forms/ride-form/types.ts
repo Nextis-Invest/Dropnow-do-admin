@@ -9,7 +9,11 @@ export type Chauffeur = { id: string; name: string };
 export type Client = { id: string; name: string };
 export type Partner = { id: string; name: string };
 export type Project = { id: string; name: string };
-export type ExistingMission = { id: string; title: string; chauffeurId: string };
+export type ExistingMission = {
+  id: string;
+  title: string;
+  chauffeurId: string;
+};
 
 export interface RideFormProps {
   onAddRide: (data: RideFormValues) => void;
@@ -24,6 +28,24 @@ export interface RideFormProps {
   showMissionButton?: boolean;
 }
 
+export type DeviceInfo = {
+  deviceName?: string;
+  deviceModel?: string;
+  platform?: string;
+  lastActive?: Date;
+};
+
+export type ExternalUser = {
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  externalId: string;
+  lastConnected?: Date;
+  deviceInfo?: DeviceInfo;
+};
+
 export interface StepProps {
   form: UseFormReturn<RideFormValues>;
   users?: User[];
@@ -32,4 +54,6 @@ export interface StepProps {
   partners?: Partner[];
   projects?: Project[];
   existingMissions?: ExistingMission[];
+  externalUsers?: ExternalUser[];
+  isLoading?: boolean;
 }

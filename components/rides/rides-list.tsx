@@ -1,92 +1,113 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { MapPinIcon, ClockIcon, CarIcon, UserIcon, Eye } from "lucide-react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { useState } from "react";
+import Link from "next/link";
+import { MapPinIcon, ClockIcon, CarIcon, UserIcon, Eye } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 // Define the Ride type
 export interface Ride {
-  id: string
-  rideNumber: string
-  passengerName: string
-  chauffeurName: string
-  pickupAddress: string
-  dropoffAddress: string
-  pickupTime: string
-  status: string
-  category: string
-  fare: number
-  distance: number
-  duration: number
-  createdAt: string
+  id: string;
+  rideNumber: string;
+  passengerName: string;
+  chauffeurName: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  pickupTime: string;
+  status: string;
+  category?: string; // Keep for backward compatibility
+  rideType?: string; // New field from schema
+  fare: number;
+  distance: number;
+  duration: number;
+  createdAt: string;
 }
 
 interface RidesListProps {
-  rides: Ride[]
-  title?: string
-  description?: string
-  showSearch?: boolean
-  limit?: number
+  rides: Ride[];
+  title?: string;
+  description?: string;
+  showSearch?: boolean;
+  limit?: number;
 }
 
-export function RidesList({ 
-  rides, 
-  title = "Latest Rides", 
+export function RidesList({
+  rides,
+  title = "Latest Rides",
   description = "View and manage your recent rides",
   showSearch = true,
-  limit
+  limit,
 }: RidesListProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  
+  const [searchTerm, setSearchTerm] = useState("");
+
   // Filter rides based on search term
-  const filteredRides = rides.filter(ride =>
-    ride.rideNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ride.passengerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (ride.chauffeurName && ride.chauffeurName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    ride.pickupAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    ride.dropoffAddress.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-  
+  const filteredRides = rides.filter(
+    (ride) =>
+      ride.rideNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ride.passengerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (ride.chauffeurName &&
+        ride.chauffeurName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      ride.pickupAddress.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ride.dropoffAddress.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   // Apply limit if specified
-  const displayRides = limit ? filteredRides.slice(0, limit) : filteredRides
+  const displayRides = limit ? filteredRides.slice(0, limit) : filteredRides;
 
   // Helper function to format date
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date)
-  }
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
+  };
 
   // Get status badge color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'SCHEDULED': return 'bg-blue-100 text-blue-800'
-      case 'ASSIGNED': return 'bg-purple-100 text-purple-800'
-      case 'IN_PROGRESS': return 'bg-yellow-100 text-yellow-800'
-      case 'COMPLETED': return 'bg-green-100 text-green-800'
-      case 'CANCELLED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "SCHEDULED":
+        return "bg-blue-100 text-blue-800";
+      case "ASSIGNED":
+        return "bg-purple-100 text-purple-800";
+      case "IN_PROGRESS":
+        return "bg-yellow-100 text-yellow-800";
+      case "COMPLETED":
+        return "bg-green-100 text-green-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   // Get category display name
   const getCategoryDisplayName = (category: string) => {
     switch (category) {
-      case 'CITY_TRANSFER': return 'City Transfer'
-      case 'AIRPORT_TRANSFER': return 'Airport Transfer'
-      case 'TRAIN_STATION_TRANSFER': return 'Train Station Transfer'
-      case 'CHAUFFEUR_SERVICE': return 'Chauffeur Service'
-      default: return category.replace('_', ' ')
+      case "CITY_TRANSFER":
+        return "City Transfer";
+      case "AIRPORT_TRANSFER":
+        return "Airport Transfer";
+      case "TRAIN_STATION_TRANSFER":
+        return "Train Station Transfer";
+      case "BOOK_BY_HOUR":
+        return "Book by Hour";
+      default:
+        return category.replace("_", " ");
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -96,7 +117,7 @@ export function RidesList({
           <h2 className="text-2xl font-bold">{title}</h2>
           <p className="text-muted-foreground">{description}</p>
         </div>
-        
+
         {showSearch && (
           <div className="relative w-full md:w-64">
             <Input
@@ -136,10 +157,12 @@ export function RidesList({
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-lg">{ride.rideNumber}</CardTitle>
-                    <CardDescription>{getCategoryDisplayName(ride.category)}</CardDescription>
+                    <CardDescription>
+                      {getCategoryDisplayName(ride.rideType || ride.category)}
+                    </CardDescription>
                   </div>
                   <Badge className={getStatusColor(ride.status)}>
-                    {ride.status.replace('_', ' ')}
+                    {ride.status.replace("_", " ")}
                   </Badge>
                 </div>
               </CardHeader>
@@ -148,15 +171,23 @@ export function RidesList({
                   <div className="flex items-start gap-2">
                     <UserIcon className="h-4 w-4 mt-1 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">{ride.passengerName}</p>
-                      <p className="text-xs text-muted-foreground">Chauffeur: {ride.chauffeurName}</p>
+                      <p className="text-sm font-medium">
+                        {ride.passengerName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Chauffeur: {ride.chauffeurName}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <MapPinIcon className="h-4 w-4 mt-1 text-muted-foreground" />
                     <div>
-                      <p className="text-sm font-medium">From: {ride.pickupAddress}</p>
-                      <p className="text-sm font-medium">To: {ride.dropoffAddress}</p>
+                      <p className="text-sm font-medium">
+                        From: {ride.pickupAddress}
+                      </p>
+                      <p className="text-sm font-medium">
+                        To: {ride.dropoffAddress}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -165,7 +196,10 @@ export function RidesList({
                   </div>
                   <div className="flex items-center gap-2">
                     <CarIcon className="h-4 w-4 text-muted-foreground" />
-                    <p className="text-sm">{ride.distance} km • {ride.duration} min • €{ride.fare.toFixed(2)}</p>
+                    <p className="text-sm">
+                      {ride.distance} km • {ride.duration} min • €
+                      {ride.fare.toFixed(2)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -182,5 +216,5 @@ export function RidesList({
         </div>
       )}
     </div>
-  )
+  );
 }

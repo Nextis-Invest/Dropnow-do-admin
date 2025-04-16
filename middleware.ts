@@ -2,7 +2,7 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
-  "/api/(.*)",
+  "/api/(.*)", // This catches all API routes
   "/events(.*)",
   "/chauffeurs(.*)",
   "/cars(.*)",
@@ -10,17 +10,28 @@ const isProtectedRoute = createRouteMatcher([
   "/clients(.*)",
   "/users(.*)",
   "/partners(.*)",
-  "/settings(.*)"
+  "/settings(.*)",
 ]);
 
+// Add matcher for public mobile routes
+const isMobileRoute = createRouteMatcher([
+  "/api/mobile/(.*)", // All mobile API routes
+]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) await auth.protect();
+  // Skip auth check for mobile routes
+  if (isMobileRoute(req)) {
+    console.log("Skipping auth check for mobile route");
+    console.log(req.body, req.url, req.method);
+    return;
+  }
+
+  // Protect all other routes
+  if (isProtectedRoute(req)) {
+    await auth.protect();
+  }
 });
 
 export const config = {
-  matcher: [
-    "/((?!.*\\..*|_next).*)", "/",
-    "/api/(.*)",
-  ],
+  matcher: ["/((?!.*\\..*|_next).*)", "/", "/api/(.*)"],
 };

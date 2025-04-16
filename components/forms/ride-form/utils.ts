@@ -21,24 +21,26 @@ export const getDefaultMissionValues = (): Partial<MissionFormValues> => {
   };
 };
 
-export const getDefaultRideValues = (defaults?: Partial<RideFormValues>): RideFormValues => {
+export const getDefaultRideValues = (
+  defaults?: Partial<RideFormValues>
+): RideFormValues => {
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   return {
-    useExistingPassenger: defaults?.useExistingPassenger ?? true,
+    useExistingPassenger: false,
     status: defaults?.status || "SCHEDULED",
     pickupAddress: defaults?.pickupAddress || "",
     dropoffAddress: defaults?.dropoffAddress || "",
     pickupTime: defaults?.pickupTime || new Date(),
     category: defaults?.category || "CITY_TRANSFER",
-    passengerId: defaults?.passengerId || "",
     passengerInfo: {
       firstName: defaults?.passengerInfo?.firstName || "",
       lastName: defaults?.passengerInfo?.lastName || "",
       phoneNumber: defaults?.passengerInfo?.phoneNumber || "",
-      passengerCount: defaults?.passengerInfo?.passengerCount ?? DEFAULT_PASSENGER_COUNT,
+      passengerCount:
+        defaults?.passengerInfo?.passengerCount ?? DEFAULT_PASSENGER_COUNT,
       description: defaults?.passengerInfo?.description || "",
     },
     notes: defaults?.notes || "",
@@ -62,6 +64,16 @@ export const getDefaultRideValues = (defaults?: Partial<RideFormValues>): RideFo
       rides: defaults?.mission?.rides || [],
     },
     fare: defaults?.fare,
+    flightData: defaults?.flightData,
+    flightNumber: defaults?.flightNumber || "",
+    airportTransferSubtype: defaults?.airportTransferSubtype,
+    // Default coordinates (Paris, France)
+    pickupLatitude: defaults?.pickupLatitude || 48.8566,
+    pickupLongitude: defaults?.pickupLongitude || 2.3522,
+    dropoffLatitude: defaults?.dropoffLatitude || 48.8566,
+    dropoffLongitude: defaults?.dropoffLongitude || 2.3522,
+    // Driver assignment
+    chauffeurId: defaults?.chauffeurId || "",
   };
 };
 
@@ -69,5 +81,7 @@ export const chauffeurHasExistingMission = (
   chauffeurId: string,
   existingMissions: { id: string; chauffeurId: string }[] = []
 ): boolean => {
-  return existingMissions.some(mission => mission.chauffeurId === chauffeurId);
+  return existingMissions.some(
+    (mission) => mission.chauffeurId === chauffeurId
+  );
 };

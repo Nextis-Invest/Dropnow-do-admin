@@ -1,12 +1,13 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   CameraIcon,
   CalendarIcon,
   CarIcon,
   ClipboardListIcon,
   DatabaseIcon,
+  ExternalLinkIcon,
   FileIcon,
   FileTextIcon,
   FolderIcon,
@@ -14,18 +15,20 @@ import {
   HelpCircleIcon,
   LayoutDashboardIcon,
   MoonIcon,
+  QrCodeIcon,
   SearchIcon,
   SettingsIcon,
   SunIcon,
   UsersIcon,
-} from "lucide-react"
-import { CustomUserButton } from "@/components/custom-user-button"
-import { ThemeToggleSimple } from "@/components/theme-toggle"
+  UserIcon,
+} from "lucide-react";
+import { CustomUserButton } from "@/components/custom-user-button";
+import { ThemeToggleSimple } from "@/components/theme-toggle";
 
-import { NavDocuments } from "@/components/nav-documents"
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { OrganizationSwitcher } from "@clerk/nextjs"
+import { NavAccounting } from "@/components/nav-documents";
+import { NavMain } from "@/components/nav-main";
+import { NavSecondary } from "@/components/nav-secondary";
+import { OrganizationSwitcher } from "@clerk/nextjs";
 import {
   Sidebar,
   SidebarContent,
@@ -33,7 +36,7 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 const data = {
   navMain: [
@@ -65,7 +68,7 @@ const data = {
     {
       title: "Chauffeurs",
       url: "/chauffeurs",
-      icon: CarIcon,
+      icon: UserIcon,
     },
     {
       title: "Vehicles",
@@ -113,39 +116,39 @@ const data = {
     {
       title: "Get Help",
       url: "/help",
-      icon: HelpCircleIcon
+      icon: HelpCircleIcon,
     },
     {
       title: "Search",
       url: "/search",
-      icon: SearchIcon
-    }
+      icon: SearchIcon,
+    },
   ],
   navSecondary: [
     {
       title: "Settings",
       url: "/settings",
-      icon: SettingsIcon
-    }
+      icon: SettingsIcon,
+    },
   ],
-  documents: [
+  accounting: [
     {
-      name: "Data Library",
+      name: "Estimates",
       url: "#",
-      icon: DatabaseIcon
+      icon: DatabaseIcon,
     },
     {
-      name: "Reports",
+      name: "Billings",
       url: "#",
-      icon: ClipboardListIcon
+      icon: ClipboardListIcon,
     },
     {
-      name: "Word Assistant",
+      name: "Balance",
       url: "#",
-      icon: FileIcon
-    }
-  ]
-}
+      icon: FileIcon,
+    },
+  ],
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -160,10 +163,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 elements: {
                   organizationSwitcherTrigger: {
                     "&:focus": {
-                      boxShadow: "none"
-                    }
-                  }
-                }
+                      boxShadow: "none",
+                    },
+                  },
+                },
               }}
               afterCreateOrganizationUrl="/clients/:id"
               afterLeaveOrganizationUrl="/clients"
@@ -174,7 +177,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
+        <NavAccounting items={data.accounting} />
         <NavSecondary items={data.navSecondary} />
       </SidebarContent>
       <SidebarFooter>
@@ -188,19 +191,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

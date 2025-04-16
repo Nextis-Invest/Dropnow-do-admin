@@ -1,20 +1,20 @@
-"use client"
+"use client";
 
 import {
   FolderIcon,
   MoreHorizontalIcon,
   ShareIcon,
   type LucideIcon,
-} from "lucide-react"
-import Link from "next/link"
-import { usePathname } from "next/navigation"
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -23,26 +23,26 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
-export function NavDocuments({
+export function NavAccounting({
   items,
 }: {
   items: {
-    name: string
-    url: string
-    icon: LucideIcon
-  }[]
+    name: string;
+    url: string;
+    icon: LucideIcon;
+  }[];
 }) {
-  const { isMobile } = useSidebar()
-  const pathname = usePathname()
+  const { isMobile } = useSidebar();
+  const pathname = usePathname();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Documents</SidebarGroupLabel>
+      <SidebarGroupLabel>Accounting</SidebarGroupLabel>
       <SidebarMenu>
         {items.map((item) => {
-          const isActive = pathname === item.url
+          const isActive = pathname === item.url;
           return (
             <SidebarMenuItem key={item.name}>
               <SidebarMenuButton asChild isActive={isActive}>
@@ -77,7 +77,7 @@ export function NavDocuments({
                 </DropdownMenuContent>
               </DropdownMenu>
             </SidebarMenuItem>
-          )
+          );
         })}
         <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
@@ -87,5 +87,5 @@ export function NavDocuments({
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
-  )
+  );
 }
