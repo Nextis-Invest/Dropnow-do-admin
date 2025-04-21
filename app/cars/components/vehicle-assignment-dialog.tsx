@@ -1,13 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { assignVehicle } from "../actions";
+import {
+  getEvents,
+  createEventVehicleAssignment,
+} from "../actions/event-actions";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CalendarIcon, CheckIcon, ChevronsUpDown, Loader2 } from "lucide-react";
+import {
+  CalendarIcon,
+  CheckIcon,
+  ChevronsUpDown,
+  Loader2,
+  PlusCircle,
+} from "lucide-react";
+import { EventDialog } from "@/components/forms/event-form/event-dialog";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -52,16 +63,41 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 
-// Mock data for testing
+// Event type definition
+type Event = {
+  id: string;
+  name: string;
+  clientName: string;
+  startDate: Date;
+  endDate: Date;
+  status: string;
+  location: string;
+};
+
+// Mission type definition
+type Mission = {
+  id: string;
+  name: string;
+  eventId: string;
+};
+
+// Ride type definition
+type Ride = {
+  id: string;
+  name: string;
+  missionId: string;
+};
+
+// Chauffeur type definition
+type Chauffeur = {
+  id: string;
+  name: string;
+};
+
+// Mock data for types that aren't implemented yet
 const mockPremierEvents = [
   { id: "pe1", name: "VIP Conference 2025" },
   { id: "pe2", name: "International Summit 2025" },
-];
-
-const mockEvents = [
-  { id: "e1", name: "Corporate Meeting", premierEventId: "pe1" },
-  { id: "e2", name: "Executive Dinner", premierEventId: "pe1" },
-  { id: "e3", name: "Airport Transfers", premierEventId: "pe2" },
 ];
 
 const mockMissions = [
@@ -86,7 +122,13 @@ const mockChauffeurs = [
 // The assignmentType follows the hierarchical order: Premier Event > Event > Mission > Ride > Chauffeur
 const assignmentSchema = z.object({
   // Assignment type in hierarchical order (highest to lowest)
-  assignmentType: z.enum(["PREMIER_EVENT", "EVENT", "MISSION", "RIDE", "CHAUFFEUR"]),
+  assignmentType: z.enum([
+    "PREMIER_EVENT",
+    "EVENT",
+    "MISSION",
+    "RIDE",
+    "CHAUFFEUR",
+  ]),
   entityId: z.string().min(1, "Please select an entity"),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -110,10 +152,13 @@ export function VehicleAssignmentDialog({
 }: VehicleAssignmentDialogProps) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<string>("EVENT");
   const [entities, setEntities] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [openCombobox, setOpenCombobox] = useState(false);
+  const [isLoadingEntities, setIsLoadingEntities] = useState(false);
+  const [eventDialogOpen, setEventDialogOpen] = useState(false);
+  const [events, setEvents] = useState<Event[]>([]);
 
   // Initialize the form
   const form = useForm<AssignmentFormValues>({
@@ -124,6 +169,39 @@ export function VehicleAssignmentDialog({
       notes: "",
     },
   });
+
+  // Fetch events when the dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchEvents();
+    }
+  }, [open]);
+
+  // Fetch events from the server
+  const fetchEvents = async () => {
+    try {
+      setIsLoadingEntities(true);
+      console.log("Calling getEvents() from component");
+      const result = await getEvents();
+      console.log("getEvents result:", result);
+
+      if (result.success) {
+        setEvents(result.data);
+        setEntities(result.data);
+        console.log("Set entities to:", result.data);
+      } else {
+        console.error("Failed to fetch events:", result.error);
+        toast.error(result.error || "Failed to fetch events");
+        setEntities([]);
+      }
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      toast.error("Failed to fetch events");
+      setEntities([]);
+    } finally {
+      setIsLoadingEntities(false);
+    }
+  };
 
   // Handle assignment type change
   const handleAssignmentTypeChange = (value: string) => {
@@ -137,7 +215,8 @@ export function VehicleAssignmentDialog({
         setEntities(mockPremierEvents);
         break;
       case "EVENT":
-        setEntities(mockEvents);
+        setIsLoadingEntities(true);
+        fetchEvents();
         break;
       case "MISSION":
         setEntities(mockMissions);
@@ -153,6 +232,51 @@ export function VehicleAssignmentDialog({
     }
   };
 
+  // Handle event creation
+  const handleEventCreated = async (eventData: any) => {
+    try {
+      console.log("Creating event with data:", eventData);
+
+      // Make API call to create the event
+      const response = await fetch("/api/events", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...eventData,
+          startDate: eventData.startDate.toISOString(),
+          endDate: eventData.endDate.toISOString(),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to create event");
+      }
+
+      const createdEvent = await response.json();
+      console.log("Event created successfully:", createdEvent);
+
+      // Close the event dialog
+      setEventDialogOpen(false);
+
+      // Refresh the events list
+      await fetchEvents();
+
+      // Set the newly created event as the selected entity
+      form.setValue("entityId", createdEvent.id);
+
+      // Show success message
+      toast.success("Event created successfully");
+    } catch (error) {
+      console.error("Error creating event:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to create event"
+      );
+    }
+  };
+
   // Filter entities based on search term
   const filteredEntities = entities.filter((entity) =>
     entity.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -163,21 +287,41 @@ export function VehicleAssignmentDialog({
     try {
       setIsLoading(true);
 
-      const result = await assignVehicle({
-        vehicleId,
-        assignmentType: data.assignmentType,
-        entityId: data.entityId,
-        startDate: data.startDate,
-        endDate: data.endDate,
-        notes: data.notes,
-      });
+      // If the assignment type is EVENT, use the event-specific assignment function
+      if (data.assignmentType === "EVENT") {
+        const result = await createEventVehicleAssignment({
+          eventId: data.entityId,
+          vehicleId,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          notes: data.notes,
+        });
 
-      if (result.success) {
-        toast.success(`Vehicle assigned successfully to ${selectedType}`);
-        onOpenChange(false);
-        router.refresh();
+        if (result.success) {
+          toast.success(`Vehicle assigned successfully to event`);
+          onOpenChange(false);
+          router.refresh();
+        } else {
+          toast.error(result.error || "Failed to assign vehicle to event");
+        }
       } else {
-        toast.error(result.error || "Failed to assign vehicle");
+        // For other assignment types, use the generic function
+        const result = await assignVehicle({
+          vehicleId,
+          assignmentType: data.assignmentType,
+          entityId: data.entityId,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          notes: data.notes,
+        });
+
+        if (result.success) {
+          toast.success(`Vehicle assigned successfully to ${selectedType}`);
+          onOpenChange(false);
+          router.refresh();
+        } else {
+          toast.error(result.error || "Failed to assign vehicle");
+        }
       }
     } catch (error) {
       console.error("Error assigning vehicle:", error);
@@ -193,8 +337,20 @@ export function VehicleAssignmentDialog({
         <DialogHeader>
           <DialogTitle>Assign Vehicle</DialogTitle>
           <DialogDescription>
-            Assign {vehicleName} to a Premier Event, Event, Mission, Ride, or Chauffeur.
+            Assign {vehicleName} to a Premier Event, Event, Mission, Ride, or
+            Chauffeur.
           </DialogDescription>
+          <div className="flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={fetchEvents}
+              className="text-xs"
+            >
+              Refresh Events
+            </Button>
+          </div>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -217,7 +373,9 @@ export function VehicleAssignmentDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="PREMIER_EVENT">Premier Event</SelectItem>
+                      <SelectItem value="PREMIER_EVENT">
+                        Premier Event
+                      </SelectItem>
                       <SelectItem value="EVENT">Event</SelectItem>
                       <SelectItem value="MISSION">Mission</SelectItem>
                       <SelectItem value="RIDE">Ride</SelectItem>
@@ -227,7 +385,8 @@ export function VehicleAssignmentDialog({
                   <FormDescription>
                     Select the type of entity to assign this vehicle to.
                     <span className="block mt-1 text-xs text-blue-600">
-                      Hierarchy: Premier Event &gt; Event &gt; Mission &gt; Ride &gt; Chauffeur
+                      Hierarchy: Premier Event &gt; Event &gt; Mission &gt; Ride
+                      &gt; Chauffeur
                     </span>
                   </FormDescription>
                   <FormMessage />
@@ -241,8 +400,23 @@ export function VehicleAssignmentDialog({
                 name="entityId"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Select {selectedType.replace("_", " ").toLowerCase()}</FormLabel>
-                    <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                    <FormLabel>
+                      Select {selectedType.replace("_", " ").toLowerCase()}
+                    </FormLabel>
+                    <Popover
+                      open={openCombobox}
+                      onOpenChange={(open) => {
+                        setOpenCombobox(open);
+                        // If opening the dropdown and we have events, show them
+                        if (
+                          open &&
+                          selectedType === "EVENT" &&
+                          entities.length === 0
+                        ) {
+                          fetchEvents();
+                        }
+                      }}
+                    >
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -255,8 +429,12 @@ export function VehicleAssignmentDialog({
                             )}
                           >
                             {field.value
-                              ? entities.find((entity) => entity.id === field.value)?.name
-                              : `Select ${selectedType.replace("_", " ").toLowerCase()}`}
+                              ? entities.find(
+                                  (entity) => entity.id === field.value
+                                )?.name
+                              : `Select ${selectedType
+                                  .replace("_", " ")
+                                  .toLowerCase()}`}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
@@ -264,37 +442,72 @@ export function VehicleAssignmentDialog({
                       <PopoverContent className="w-[400px] p-0">
                         <Command>
                           <CommandInput
-                            placeholder={`Search ${selectedType.replace("_", " ").toLowerCase()}...`}
+                            placeholder={`Search ${selectedType
+                              .replace("_", " ")
+                              .toLowerCase()}...`}
                             onValueChange={setSearchTerm}
                           />
-                          <CommandEmpty>No {selectedType.replace("_", " ").toLowerCase()} found.</CommandEmpty>
-                          <CommandGroup>
-                            {filteredEntities.map((entity) => (
-                              <CommandItem
-                                key={entity.id}
-                                value={entity.id}
-                                onSelect={() => {
-                                  form.setValue("entityId", entity.id);
-                                  setOpenCombobox(false);
-                                }}
-                              >
-                                <CheckIcon
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    entity.id === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {entity.name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
+                          <CommandEmpty>
+                            No {selectedType.replace("_", " ").toLowerCase()}{" "}
+                            found.
+                          </CommandEmpty>
+                          {isLoadingEntities ? (
+                            <div className="flex items-center justify-center p-4">
+                              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                            </div>
+                          ) : (
+                            <>
+                              <CommandGroup>
+                                {filteredEntities.map((entity) => (
+                                  <CommandItem
+                                    key={entity.id}
+                                    value={entity.id}
+                                    onSelect={() => {
+                                      form.setValue("entityId", entity.id);
+                                      setOpenCombobox(false);
+                                    }}
+                                  >
+                                    <CheckIcon
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        entity.id === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {entity.name}
+                                    {selectedType === "EVENT" && (
+                                      <span className="ml-2 text-xs text-muted-foreground">
+                                        {entity.clientName}
+                                      </span>
+                                    )}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+
+                              {selectedType === "EVENT" && (
+                                <CommandGroup heading="Actions">
+                                  <CommandItem
+                                    onSelect={() => {
+                                      setOpenCombobox(false);
+                                      setEventDialogOpen(true);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 font-medium"
+                                  >
+                                    <PlusCircle className="mr-2 h-5 w-5" />
+                                    Create New Event
+                                  </CommandItem>
+                                </CommandGroup>
+                              )}
+                            </>
+                          )}
                         </Command>
                       </PopoverContent>
                     </Popover>
                     <FormDescription>
-                      Select the specific {selectedType.replace("_", " ").toLowerCase()} to assign this vehicle to.
+                      Select the specific{" "}
+                      {selectedType.replace("_", " ").toLowerCase()} to assign
+                      this vehicle to.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -383,9 +596,7 @@ export function VehicleAssignmentDialog({
                         />
                       </PopoverContent>
                     </Popover>
-                    <FormDescription>
-                      When the assignment ends.
-                    </FormDescription>
+                    <FormDescription>When the assignment ends.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -430,6 +641,13 @@ export function VehicleAssignmentDialog({
           </form>
         </Form>
       </DialogContent>
+
+      {/* Event Dialog for creating new events */}
+      <EventDialog
+        open={eventDialogOpen}
+        onOpenChange={setEventDialogOpen}
+        onSubmit={handleEventCreated}
+      />
     </Dialog>
   );
 }
