@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Find the external user
-    const externalUser = await prisma.externalUser.findUnique({
+    const externalUser = await prisma.driver.findUnique({
       where: { externalId },
     });
 

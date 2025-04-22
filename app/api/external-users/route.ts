@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Fetch external users from the database
-    const externalUsers = await prisma.externalUser.findMany({
+    const externalUsers = await prisma.driver.findMany({
       where,
       orderBy: [
         { lastConnected: "desc" },
@@ -55,12 +55,15 @@ export async function GET(req: NextRequest) {
       phone: user.phone || "",
       externalId: user.externalId,
       lastConnected: user.lastConnected,
-      deviceInfo: user.mobileDevices.length > 0 ? {
-        deviceName: user.mobileDevices[0].deviceName,
-        deviceModel: user.mobileDevices[0].deviceModel,
-        platform: user.mobileDevices[0].platform,
-        lastActive: user.mobileDevices[0].lastActive,
-      } : null,
+      deviceInfo:
+        user.mobileDevices.length > 0
+          ? {
+              deviceName: user.mobileDevices[0].deviceName,
+              deviceModel: user.mobileDevices[0].deviceModel,
+              platform: user.mobileDevices[0].platform,
+              lastActive: user.mobileDevices[0].lastActive,
+            }
+          : null,
     }));
 
     return NextResponse.json(formattedUsers);

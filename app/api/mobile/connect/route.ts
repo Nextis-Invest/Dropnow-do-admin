@@ -176,13 +176,13 @@ export async function POST(req: NextRequest) {
 
     // For this implementation, we'll always treat this as an external user (driver)
     // Find or create the external user based on the provided driver information
-    let externalUser = await prisma.externalUser.findUnique({
+    let externalUser = await prisma.driver.findUnique({
       where: { externalId: driverInfo.externalId },
     });
 
     if (!externalUser) {
       // Create a new external user with the provided information
-      externalUser = await prisma.externalUser.create({
+      externalUser = await prisma.driver.create({
         data: {
           externalId: driverInfo.externalId,
           firstName: driverInfo.firstName || null,
@@ -194,7 +194,7 @@ export async function POST(req: NextRequest) {
       });
     } else {
       // Update the existing external user with any new information
-      externalUser = await prisma.externalUser.update({
+      externalUser = await prisma.driver.update({
         where: { id: externalUser.id },
         data: {
           firstName: driverInfo.firstName || externalUser.firstName,

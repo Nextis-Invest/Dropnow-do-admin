@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Find the external user by ID
-    const driver = await prisma.externalUser.findFirst({
+    const driver = await prisma.driver.findFirst({
       where: {
         externalId: driverId,
       },
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Update the last connected timestamp
-    await prisma.externalUser.update({
+    await prisma.driver.update({
       where: { id: driver.id },
       data: { lastConnected: new Date() },
     });
