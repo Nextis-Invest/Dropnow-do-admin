@@ -21,7 +21,7 @@ export const chauffeurFormSchema = z.object({
     required_error: "VTC validation date is required",
   }),
   vehicleId: z.string().optional().nullable(),
-  status: z.nativeEnum(ChauffeurStatus).default(ChauffeurStatus.AVAILABLE),
+  status: z.nativeEnum(ChauffeurStatus).default("AVAILABLE"),
   category: z.nativeEnum(ChauffeurCategory).default(ChauffeurCategory.AVERAGE),
   notes: z.string().optional().nullable(),
 });
