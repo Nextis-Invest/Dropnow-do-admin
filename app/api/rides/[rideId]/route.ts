@@ -218,17 +218,14 @@ export async function PUT(
         distance: data.distance !== undefined ? data.distance : undefined,
         duration: data.duration,
         notes: data.notes,
-        chauffeurId: data.chauffeurId,
+        chauffeurId: data.chauffeurId || undefined,
         // Update passenger information if provided
-        ...(data.passenger
-          ? {
-              passengerFirstName: data.passenger.firstName,
-              passengerLastName: data.passenger.lastName,
-              passengerEmail: data.passenger.email,
-              passengerPhone: data.passenger.phone,
-              passengerCount: data.passengerCount || 1,
-            }
-          : {}),
+        passengerFirstName:
+          data.passenger?.firstName || data.passengerFirstName,
+        passengerLastName: data.passenger?.lastName || data.passengerLastName,
+        passengerEmail: data.passenger?.email || data.passengerEmail,
+        passengerPhone: data.passenger?.phone || data.passengerPhone,
+        passengerCount: data.passengerCount || 1,
       },
       select: {
         id: true,

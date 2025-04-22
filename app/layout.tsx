@@ -30,12 +30,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
-      <body className={`min-h-screen flex flex-col antialiased`}>
+      <body
+        className={`min-h-screen flex flex-col antialiased`}
+        suppressHydrationWarning
+      >
         <ThemeProvider>
           <ClerkProvider
             appearance={{

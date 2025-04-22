@@ -555,6 +555,130 @@ export default function ChauffeursPage() {
 
                   {/* Table View */}
                   <TabsContent value="table" className="space-y-4">
+                    <div className="rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Phone</TableHead>
+                            <TableHead>External ID</TableHead>
+                            <TableHead>Last Connected</TableHead>
+                            <TableHead>Device</TableHead>
+                            <TableHead className="text-right">
+                              Actions
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {isLoadingExternalUsers ? (
+                            <TableRow>
+                              <TableCell
+                                colSpan={7}
+                                className="h-24 text-center"
+                              >
+                                <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto" />
+                              </TableCell>
+                            </TableRow>
+                          ) : externalUsers.length === 0 ? (
+                            <TableRow>
+                              <TableCell
+                                colSpan={7}
+                                className="h-24 text-center"
+                              >
+                                <div className="flex flex-col items-center justify-center gap-2">
+                                  <QrCode className="h-8 w-8 text-muted-foreground/50" />
+                                  <p className="text-muted-foreground">
+                                    No chauffeurs found
+                                  </p>
+                                  <Dialog>
+                                    <DialogTrigger asChild>
+                                      <Button size="sm">
+                                        <PlusIcon className="mr-2 h-4 w-4" />
+                                        Add Chauffeur
+                                      </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[600px]">
+                                      <DialogHeader>
+                                        <DialogTitle>Add Chauffeur</DialogTitle>
+                                        <DialogDescription>
+                                          Create a connection for a chauffeur
+                                          and generate a QR code for ride
+                                          access.
+                                        </DialogDescription>
+                                      </DialogHeader>
+                                      <ExternalUserConnectionQR />
+                                    </DialogContent>
+                                  </Dialog>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            externalUsers.map((user) => (
+                              <TableRow key={user.id}>
+                                <TableCell>
+                                  <div className="font-medium">
+                                    {user.firstName && user.lastName
+                                      ? `${user.firstName} ${user.lastName}`
+                                      : `External User ${user.externalId}`}
+                                  </div>
+                                </TableCell>
+                                <TableCell>{user.email || "—"}</TableCell>
+                                <TableCell>{user.phone || "—"}</TableCell>
+                                <TableCell>{user.externalId}</TableCell>
+                                <TableCell>
+                                  {user.lastConnected
+                                    ? formatDistanceToNow(user.lastConnected, {
+                                        addSuffix: true,
+                                      })
+                                    : "Never"}
+                                </TableCell>
+                                <TableCell>
+                                  {user.mobileDevices &&
+                                  user.mobileDevices.length > 0
+                                    ? user.mobileDevices[0].deviceName ||
+                                      user.mobileDevices[0].deviceModel ||
+                                      "Unknown device"
+                                    : "—"}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex justify-end gap-2">
+                                    <Dialog>
+                                      <DialogTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                          <QrCode className="h-4 w-4" />
+                                          <span className="sr-only">
+                                            Generate QR
+                                          </span>
+                                        </Button>
+                                      </DialogTrigger>
+                                      <DialogContent className="sm:max-w-[600px]">
+                                        <DialogHeader>
+                                          <DialogTitle>
+                                            Generate QR Code
+                                          </DialogTitle>
+                                          <DialogDescription>
+                                            Generate a new QR code for this
+                                            external user.
+                                          </DialogDescription>
+                                        </DialogHeader>
+                                        <ExternalUserConnectionQR
+                                          initialExternalId={user.externalId}
+                                        />
+                                      </DialogContent>
+                                    </Dialog>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </TabsContent>
+
+                  {/* Grid View */}
+                  <TabsContent value="grid" className="space-y-4">
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                       {isLoadingExternalUsers ? (
                         <div className="col-span-full text-center py-12">

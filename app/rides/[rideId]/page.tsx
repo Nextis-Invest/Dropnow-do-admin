@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
@@ -10,7 +11,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -31,6 +31,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EditRideDialogTabs } from "@/components/rides/edit-ride-dialog-tabs";
+import { toast } from "sonner";
 import { Ride } from "@/components/rides/rides-list";
 
 // Define an interface for the ride details
@@ -39,6 +41,21 @@ interface RideDetails extends Ride {
   airportTransferType?: string | null;
   flightNumber?: string | null;
   notes?: string | null;
+  passengerCount?: number;
+  passenger?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  };
+  chauffeur?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string;
+    phone?: string;
+  };
   booking?: {
     id: string;
     bookingNumber: string;
@@ -63,6 +80,7 @@ export default function RideDetailPage() {
   const [ride, setRide] = useState<RideDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchRide = async () => {
@@ -243,7 +261,10 @@ export default function RideDetailPage() {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="outline">
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditDialogOpen(true)}
+                  >
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
@@ -252,6 +273,35 @@ export default function RideDetailPage() {
                     Cancel
                   </Button>
                 </div>
+
+                {/* Edit Ride Dialog */}
+                <EditRideDialogTabs
+                  open={editDialogOpen}
+                  onOpenChange={setEditDialogOpen}
+                  rideData={rideData}
+                  onRideUpdated={() => {
+                    // Refresh ride data after update
+                    const fetchRide = async () => {
+                      try {
+                        const response = await fetch(
+                          `/api/rides/${params.rideId}`
+                        );
+                        if (!response.ok) {
+                          throw new Error(
+                            "Failed to fetch updated ride details"
+                          );
+                        }
+                        const data = await response.json();
+                        setRide(data);
+                        toast.success("Ride updated successfully");
+                      } catch (error) {
+                        console.error("Error fetching updated ride:", error);
+                        toast.error("Failed to refresh ride details");
+                      }
+                    };
+                    fetchRide();
+                  }}
+                />
               </div>
 
               {/* Ride details */}
@@ -368,7 +418,38 @@ export default function RideDetailPage() {
                       </h3>
                       <div className="flex items-start gap-2">
                         <UserIcon className="h-4 w-4 mt-1 text-muted-foreground" />
-                        <p className="font-medium">{rideData.passengerName}</p>
+                        <div>
+                          {rideData.passenger ? (
+                            <>
+                              <p className="font-medium">
+                                {rideData.passenger.firstName}{" "}
+                                {rideData.passenger.lastName}
+                              </p>
+                              {rideData.passenger.email && (
+                                <p className="text-xs text-muted-foreground">
+                                  {rideData.passenger.email}
+                                </p>
+                              )}
+                              {rideData.passenger.phone && (
+                                <p className="text-xs text-muted-foreground">
+                                  {rideData.passenger.phone}
+                                </p>
+                              )}
+                              {rideData.passengerCount &&
+                                rideData.passengerCount > 1 && (
+                                  <p className="text-xs text-muted-foreground mt-1">
+                                    Group of {rideData.passengerCount}{" "}
+                                    passengers
+                                  </p>
+                                )}
+                            </>
+                          ) : (
+                            <p className="font-medium">
+                              {rideData.passengerName ||
+                                "No passenger information"}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -380,7 +461,31 @@ export default function RideDetailPage() {
                       </h3>
                       <div className="flex items-start gap-2">
                         <UserIcon className="h-4 w-4 mt-1 text-muted-foreground" />
-                        <p className="font-medium">{rideData.chauffeurName}</p>
+                        <div>
+                          {rideData.chauffeur ? (
+                            <>
+                              <p className="font-medium">
+                                {rideData.chauffeur.firstName}{" "}
+                                {rideData.chauffeur.lastName}
+                              </p>
+                              {rideData.chauffeur.email && (
+                                <p className="text-xs text-muted-foreground">
+                                  {rideData.chauffeur.email}
+                                </p>
+                              )}
+                              {rideData.chauffeur.phone && (
+                                <p className="text-xs text-muted-foreground">
+                                  {rideData.chauffeur.phone}
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            <p className="font-medium">
+                              {rideData.chauffeurName ||
+                                "No chauffeur assigned"}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -406,9 +511,37 @@ export default function RideDetailPage() {
                       </h3>
                       <div className="flex items-start gap-2">
                         <Calendar className="h-4 w-4 mt-1 text-muted-foreground" />
-                        <p className="font-medium">
-                          {rideData.mission?.event?.title || "No Event"}
-                        </p>
+                        <div>
+                          {rideData.mission?.event ? (
+                            <>
+                              <p className="font-medium">
+                                {rideData.mission.event.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Mission: {rideData.mission.title}
+                              </p>
+                              {rideData.mission.event.id && (
+                                <p className="text-xs text-muted-foreground">
+                                  <Link
+                                    href={`/events/${rideData.mission.event.id}`}
+                                    className="hover:underline text-blue-600"
+                                  >
+                                    View Event Details
+                                  </Link>
+                                </p>
+                              )}
+                            </>
+                          ) : rideData.mission ? (
+                            <>
+                              <p className="font-medium">No specific event</p>
+                              <p className="text-xs text-muted-foreground">
+                                Mission: {rideData.mission.title}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="font-medium">No Event</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </CardContent>

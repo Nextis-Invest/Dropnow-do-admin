@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DateTimePicker } from "../form-helpers/DateTimePicker";
+import { AddressAutocomplete } from "../form-helpers/AddressAutocomplete";
 import type { StepProps } from "../types";
 import { StepHeader } from "../form-helpers/StepHeader";
 import { RIDE_STATUSES } from "../constants";
@@ -115,20 +116,43 @@ export const LocationDetailsStep: React.FC<StepProps> = ({ form }) => {
               </FormLabel>
               <FormControl>
                 <div className="relative">
-                  <Input
-                    placeholder={
-                      rideType === "AIRPORT_TRANSFER" &&
-                      airportTransferSubtype === "AIRPORT_PICKUP"
-                        ? "Airport Terminal/Gate"
-                        : "Pickup Address"
-                    }
-                    {...field}
-                    className={
-                      flightData && airportTransferSubtype === "AIRPORT_PICKUP"
-                        ? "border-green-500 pr-10"
-                        : ""
-                    }
-                  />
+                  {/* Use AddressAutocomplete for non-airport pickup or when no flight data is available */}
+                  {rideType !== "AIRPORT_TRANSFER" ||
+                  airportTransferSubtype !== "AIRPORT_PICKUP" ||
+                  !flightData ? (
+                    <AddressAutocomplete
+                      placeholder={
+                        rideType === "AIRPORT_TRANSFER" &&
+                        airportTransferSubtype === "AIRPORT_PICKUP"
+                          ? "Airport Terminal/Gate"
+                          : "Pickup Address"
+                      }
+                      defaultValue={field.value}
+                      onAddressSelect={(address, lat, lng) => {
+                        form.setValue("pickupAddress", address, {
+                          shouldValidate: true,
+                        });
+                        form.setValue("pickupLatitude", lat, {
+                          shouldValidate: true,
+                        });
+                        form.setValue("pickupLongitude", lng, {
+                          shouldValidate: true,
+                        });
+                      }}
+                      className={
+                        flightData &&
+                        airportTransferSubtype === "AIRPORT_PICKUP"
+                          ? "border-green-500 pr-10"
+                          : ""
+                      }
+                    />
+                  ) : (
+                    <Input
+                      placeholder="Airport Terminal/Gate"
+                      {...field}
+                      className="border-green-500 pr-10"
+                    />
+                  )}
                   {flightData &&
                     airportTransferSubtype === "AIRPORT_PICKUP" && (
                       <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
@@ -172,21 +196,43 @@ export const LocationDetailsStep: React.FC<StepProps> = ({ form }) => {
                 </FormLabel>
                 <FormControl>
                   <div className="relative">
-                    <Input
-                      placeholder={
-                        rideType === "AIRPORT_TRANSFER" &&
-                        airportTransferSubtype === "AIRPORT_DROPOFF"
-                          ? "Airport Terminal/Gate"
-                          : "Dropoff Address"
-                      }
-                      {...field}
-                      className={
-                        flightData &&
-                        airportTransferSubtype === "AIRPORT_DROPOFF"
-                          ? "border-green-500 pr-10"
-                          : ""
-                      }
-                    />
+                    {/* Use AddressAutocomplete for non-airport dropoff or when no flight data is available */}
+                    {rideType !== "AIRPORT_TRANSFER" ||
+                    airportTransferSubtype !== "AIRPORT_DROPOFF" ||
+                    !flightData ? (
+                      <AddressAutocomplete
+                        placeholder={
+                          rideType === "AIRPORT_TRANSFER" &&
+                          airportTransferSubtype === "AIRPORT_DROPOFF"
+                            ? "Airport Terminal/Gate"
+                            : "Dropoff Address"
+                        }
+                        defaultValue={field.value}
+                        onAddressSelect={(address, lat, lng) => {
+                          form.setValue("dropoffAddress", address, {
+                            shouldValidate: true,
+                          });
+                          form.setValue("dropoffLatitude", lat, {
+                            shouldValidate: true,
+                          });
+                          form.setValue("dropoffLongitude", lng, {
+                            shouldValidate: true,
+                          });
+                        }}
+                        className={
+                          flightData &&
+                          airportTransferSubtype === "AIRPORT_DROPOFF"
+                            ? "border-green-500 pr-10"
+                            : ""
+                        }
+                      />
+                    ) : (
+                      <Input
+                        placeholder="Airport Terminal/Gate"
+                        {...field}
+                        className="border-green-500 pr-10"
+                      />
+                    )}
                     {flightData &&
                       airportTransferSubtype === "AIRPORT_DROPOFF" && (
                         <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">

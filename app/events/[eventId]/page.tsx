@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Calendar, Users, MapPin, Edit, MoreHorizontal, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  Users,
+  MapPin,
+  Edit,
+  MoreHorizontal,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { AppSidebar } from "@/components/app-sidebar";
@@ -20,6 +28,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventVehicleAssignmentDialog } from "../components/event-vehicle-assignment-dialog";
+import { EditEventDialogTabs } from "@/components/events/edit-event-dialog-tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -133,6 +142,7 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [missions, setMissions] = useState(mockMissions);
   const [participants, setParticipants] = useState(mockParticipants);
   const [vehicles, setVehicles] = useState(mockVehicles);
@@ -143,7 +153,7 @@ export default function EventDetailPage() {
       try {
         // In a real app, you would fetch the event data from an API
         // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // In a real app, you would fetch the event with the ID from params.eventId
         setEvent(mockEvent);
@@ -182,7 +192,9 @@ export default function EventDetailPage() {
 
     if (start.toDateString() === end.toDateString()) {
       // Same day event
-      return `${formatDate(startDate)}, ${formatTime(startDate)} - ${formatTime(endDate)}`;
+      return `${formatDate(startDate)}, ${formatTime(startDate)} - ${formatTime(
+        endDate
+      )}`;
     } else {
       // Multi-day event
       return `${formatDate(startDate)} - ${formatDate(endDate)}`;
@@ -192,11 +204,16 @@ export default function EventDetailPage() {
   // Get status badge color
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "UPCOMING": return "bg-blue-100 text-blue-800";
-      case "IN_PROGRESS": return "bg-green-100 text-green-800";
-      case "COMPLETED": return "bg-gray-100 text-gray-800";
-      case "CANCELLED": return "bg-red-100 text-red-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "UPCOMING":
+        return "bg-blue-100 text-blue-800";
+      case "IN_PROGRESS":
+        return "bg-green-100 text-green-800";
+      case "COMPLETED":
+        return "bg-gray-100 text-gray-800";
+      case "CANCELLED":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -224,11 +241,17 @@ export default function EventDetailPage() {
             <div className="@container/main flex flex-1 flex-col gap-2">
               <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
                 <div className="flex items-center">
-                  <Button variant="ghost" onClick={() => router.back()} className="mr-4">
+                  <Button
+                    variant="ghost"
+                    onClick={() => router.back()}
+                    className="mr-4"
+                  >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
-                  <h1 className="text-2xl font-bold">Loading event details...</h1>
+                  <h1 className="text-2xl font-bold">
+                    Loading event details...
+                  </h1>
                 </div>
                 <div className="h-96 flex items-center justify-center">
                   <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -251,7 +274,11 @@ export default function EventDetailPage() {
             <div className="@container/main flex flex-1 flex-col gap-2">
               <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 px-4 lg:px-6">
                 <div className="flex items-center">
-                  <Button variant="ghost" onClick={() => router.back()} className="mr-4">
+                  <Button
+                    variant="ghost"
+                    onClick={() => router.back()}
+                    className="mr-4"
+                  >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
@@ -260,8 +287,13 @@ export default function EventDetailPage() {
                 <Card>
                   <CardContent className="flex flex-col items-center justify-center h-60">
                     <Calendar className="h-16 w-16 text-muted-foreground mb-4" />
-                    <p className="text-lg text-muted-foreground">The requested event could not be found.</p>
-                    <Button onClick={() => router.push("/events")} className="mt-4">
+                    <p className="text-lg text-muted-foreground">
+                      The requested event could not be found.
+                    </p>
+                    <Button
+                      onClick={() => router.push("/events")}
+                      className="mt-4"
+                    >
                       Go to Events
                     </Button>
                   </CardContent>
@@ -285,7 +317,11 @@ export default function EventDetailPage() {
               {/* Header with back button */}
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div className="flex items-center">
-                  <Button variant="ghost" onClick={() => router.back()} className="mr-4">
+                  <Button
+                    variant="ghost"
+                    onClick={() => router.back()}
+                    className="mr-4"
+                  >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
                   </Button>
@@ -295,7 +331,10 @@ export default function EventDetailPage() {
                   </div>
                 </div>
                 <div className="flex space-x-2">
-                  <Button variant="outline" onClick={() => router.push(`/events/${event.id}/edit`)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setEditDialogOpen(true)}
+                  >
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </Button>
@@ -307,16 +346,29 @@ export default function EventDetailPage() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push(`/events/${event.id}/missions/new`)}>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(`/events/${event.id}/missions/new`)
+                        }
+                      >
                         Add Mission
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => router.push(`/events/${event.id}/participants/new`)}>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push(`/events/${event.id}/participants/new`)
+                        }
+                      >
                         Add Participant
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setAssignmentDialogOpen(true)}>
+                      <DropdownMenuItem
+                        onClick={() => setAssignmentDialogOpen(true)}
+                      >
                         Assign Vehicles
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-red-600" onClick={handleDeleteEvent}>
+                      <DropdownMenuItem
+                        className="text-red-600"
+                        onClick={handleDeleteEvent}
+                      >
                         Delete Event
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -329,34 +381,44 @@ export default function EventDetailPage() {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle>Event Details</CardTitle>
-                    <Badge className={getStatusColor(event.status)}>{event.status}</Badge>
+                    <Badge className={getStatusColor(event.status)}>
+                      {event.status}
+                    </Badge>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Date & Time</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                        Date & Time
+                      </h3>
                       <p className="flex items-center">
                         <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
                         {formatDateRange(event.startDate, event.endDate)}
                       </p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Location</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                        Location
+                      </h3>
                       <p className="flex items-center">
                         <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
                         {event.location}
                       </p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Client</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                        Client
+                      </h3>
                       <p className="flex items-center">
                         <Users className="h-4 w-4 mr-2 text-muted-foreground" />
                         {event.clientName}
                       </p>
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-muted-foreground mb-2">Participants</h3>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                        Participants
+                      </h3>
                       <p className="flex items-center">
                         <Users className="h-4 w-4 mr-2 text-muted-foreground" />
                         {event.totalParticipants} participants
@@ -364,7 +426,9 @@ export default function EventDetailPage() {
                     </div>
                   </div>
                   <div className="mt-6">
-                    <h3 className="text-sm font-medium text-muted-foreground mb-2">Description</h3>
+                    <h3 className="text-sm font-medium text-muted-foreground mb-2">
+                      Description
+                    </h3>
                     <p>{event.description}</p>
                   </div>
                 </CardContent>
@@ -382,7 +446,11 @@ export default function EventDetailPage() {
                 <TabsContent value="missions" className="mt-4">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">Missions</h2>
-                    <Button onClick={() => router.push(`/events/${event.id}/missions/new`)}>
+                    <Button
+                      onClick={() =>
+                        router.push(`/events/${event.id}/missions/new`)
+                      }
+                    >
                       Add Mission
                     </Button>
                   </div>
@@ -391,12 +459,22 @@ export default function EventDetailPage() {
                       <Card key={mission.id}>
                         <CardHeader className="pb-2">
                           <div className="flex justify-between items-start">
-                            <CardTitle className="text-lg">{mission.name}</CardTitle>
-                            <Badge className={mission.status === "PLANNED" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800"}>
+                            <CardTitle className="text-lg">
+                              {mission.name}
+                            </CardTitle>
+                            <Badge
+                              className={
+                                mission.status === "PLANNED"
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-green-100 text-green-800"
+                              }
+                            >
                               {mission.status}
                             </Badge>
                           </div>
-                          <CardDescription>{formatDate(mission.date)}</CardDescription>
+                          <CardDescription>
+                            {formatDate(mission.date)}
+                          </CardDescription>
                         </CardHeader>
                         <CardContent>
                           <p className="text-sm">{mission.description}</p>
@@ -406,7 +484,15 @@ export default function EventDetailPage() {
                           </div>
                         </CardContent>
                         <CardFooter>
-                          <Button variant="outline" className="w-full" onClick={() => router.push(`/events/${event.id}/missions/${mission.id}`)}>
+                          <Button
+                            variant="outline"
+                            className="w-full"
+                            onClick={() =>
+                              router.push(
+                                `/events/${event.id}/missions/${mission.id}`
+                              )
+                            }
+                          >
                             View Details
                           </Button>
                         </CardFooter>
@@ -419,7 +505,11 @@ export default function EventDetailPage() {
                 <TabsContent value="participants" className="mt-4">
                   <div className="flex justify-between items-center mb-4">
                     <h2 className="text-xl font-semibold">Participants</h2>
-                    <Button onClick={() => router.push(`/events/${event.id}/participants/new`)}>
+                    <Button
+                      onClick={() =>
+                        router.push(`/events/${event.id}/participants/new`)
+                      }
+                    >
                       Add Participant
                     </Button>
                   </div>
@@ -437,15 +527,28 @@ export default function EventDetailPage() {
                         </thead>
                         <tbody>
                           {participants.map((participant) => (
-                            <tr key={participant.id} className="border-b hover:bg-muted/50">
+                            <tr
+                              key={participant.id}
+                              className="border-b hover:bg-muted/50"
+                            >
                               <td className="p-4">{participant.name}</td>
                               <td className="p-4">
-                                <Badge variant="outline">{participant.role}</Badge>
+                                <Badge variant="outline">
+                                  {participant.role}
+                                </Badge>
                               </td>
                               <td className="p-4">{participant.email}</td>
                               <td className="p-4">{participant.phone}</td>
                               <td className="p-4 text-right">
-                                <Button variant="ghost" size="sm" onClick={() => router.push(`/events/${event.id}/participants/${participant.id}`)}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    router.push(
+                                      `/events/${event.id}/participants/${participant.id}`
+                                    )
+                                  }
+                                >
                                   View
                                 </Button>
                               </td>
@@ -479,15 +582,28 @@ export default function EventDetailPage() {
                         </thead>
                         <tbody>
                           {vehicles.map((vehicle) => (
-                            <tr key={vehicle.id} className="border-b hover:bg-muted/50">
-                              <td className="p-4">{vehicle.make} {vehicle.model}</td>
+                            <tr
+                              key={vehicle.id}
+                              className="border-b hover:bg-muted/50"
+                            >
+                              <td className="p-4">
+                                {vehicle.make} {vehicle.model}
+                              </td>
                               <td className="p-4">{vehicle.licensePlate}</td>
                               <td className="p-4">{vehicle.chauffeurName}</td>
                               <td className="p-4">
-                                <Badge variant="outline">{vehicle.status}</Badge>
+                                <Badge variant="outline">
+                                  {vehicle.status}
+                                </Badge>
                               </td>
                               <td className="p-4 text-right">
-                                <Button variant="ghost" size="sm" onClick={() => router.push(`/cars/${vehicle.id}`)}>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    router.push(`/cars/${vehicle.id}`)
+                                  }
+                                >
                                   View
                                 </Button>
                               </td>
@@ -508,6 +624,29 @@ export default function EventDetailPage() {
         onOpenChange={setAssignmentDialogOpen}
         eventId={event?.id || ""}
         eventName={event?.name || ""}
+      />
+      <EditEventDialogTabs
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        eventData={event}
+        onEventUpdated={() => {
+          // Refresh event data after update
+          const fetchEvent = async () => {
+            try {
+              // In a real app, you would fetch the event data from an API
+              // Simulate API call
+              await new Promise((resolve) => setTimeout(resolve, 500));
+
+              // In a real app, you would fetch the event with the ID from params.eventId
+              setEvent(mockEvent);
+              toast.success("Event updated successfully");
+            } catch (error) {
+              console.error("Error fetching updated event:", error);
+              toast.error("Failed to refresh event details");
+            }
+          };
+          fetchEvent();
+        }}
       />
     </SidebarProvider>
   );
